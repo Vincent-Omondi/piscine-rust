@@ -1,7 +1,7 @@
-pub fn sum(a: _) -> i32 {  
+pub fn sum(a: &[i32]) -> i32 {
     a.iter().sum()
 }
 
-pub fn thirtytwo_tens() -> [i32; 32] {
+pub const fn thirtytwo_tens() -> [i32; 32] {
     [10; 32]
 }
