@@ -14,10 +14,7 @@ pub fn fetch_data(server: Result<&str, &str>, security_level: Security) -> Strin
             Ok(url) => url.to_string(),
             Err(_) => "WARNING: check the server".to_string(),
         },
-        Security::NotFound => match server {
-            Ok(url) => url.to_string(),
-            Err(err) => format!("Not found: {}", err),
-        },
+        Security::NotFound => server.unwrap().to_string(),
         Security::UnexpectedUrl => server.unwrap().to_string(),
     }
 }
