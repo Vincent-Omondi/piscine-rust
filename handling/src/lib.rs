@@ -6,5 +6,6 @@ pub fn open_or_create<P: AsRef<Path>>(path: &P, content: &str) {
         .create(true)
         .open(path)
         .unwrap();
+        
     file.write(content.as_bytes()).unwrap();
 }
