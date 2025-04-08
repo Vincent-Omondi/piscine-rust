@@ -10,11 +10,10 @@ pub fn fetch_data(server: Result<&str, &str>, security_level: Security) -> Strin
     match security_level {
         Security::Unknown => server.unwrap().to_string(),
         Security::Message => server.expect("ERROR: program stops").to_string(),
-        Security::Warning => match server {
-            Ok(url) => url.to_string(),
-            Err(_) => "WARNING: check the server".to_string(),
-        },
-        Security::NotFound => server.unwrap().to_string(),
+        Security::Warning => server.unwrap_or("WARNING: check the server").to_owned(),
+        Security::NotFound => server
+            .map(String::from)
+            .unwrap_or_else(|url| format!("Not found: {}", url)),
         Security::UnexpectedUrl => server.unwrap().to_string(),
     }
 }
