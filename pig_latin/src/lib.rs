@@ -4,44 +4,27 @@ pub fn pig_latin(text: &str) -> String {
         return String::new();
     }
     
-    let mut chars = text.chars();
-    let first_char = chars.next().unwrap().to_ascii_lowercase();
+    let chars: Vec<char> = text.chars().collect();
     
     // Check if the word starts with a vowel
-    if is_vowel(first_char) {
+    if is_vowel(chars[0]) {
         // If starts with vowel, just add "ay"
         return format!("{}ay", text);
     }
     
-    // Convert to a vector of chars for easier manipulation
-    let chars: Vec<char> = text.chars().collect();
-    
-    // Find the position of the first vowel
-    let mut first_vowel_pos = 1;
-    while first_vowel_pos < chars.len() && !is_vowel(chars[first_vowel_pos]) {
-        // Check for the 'qu' special case
-        if first_vowel_pos > 0 && chars[first_vowel_pos - 1] == 'q' && chars[first_vowel_pos] == 'u' {
-            first_vowel_pos += 1;
-            break;
-        }
-        first_vowel_pos += 1;
-    }
-    
-    // If no vowel was found or we're at the end, just add "ay"
-    if first_vowel_pos >= chars.len() {
-        return format!("{}ay", text);
-    }
-    
-    // Create the Pig Latin word
     let mut result = String::new();
     
-    // Add the part after the consonant cluster
-    for i in first_vowel_pos..chars.len() {
+    // Find the index where to split the word
+    let split_index = find_split_index(&chars);
+    
+    // Build the result
+    // First part: everything after the split index
+    for i in split_index..chars.len() {
         result.push(chars[i]);
     }
     
-    // Add the consonant cluster at the end
-    for i in 0..first_vowel_pos {
+    // Second part: everything before the split index
+    for i in 0..split_index {
         result.push(chars[i]);
     }
     
@@ -49,6 +32,31 @@ pub fn pig_latin(text: &str) -> String {
     result.push_str("ay");
     
     result
+}
+
+// Helper function to find where to split the word
+fn find_split_index(chars: &[char]) -> usize {
+    // Special case handling for words starting with 'qu'
+    if chars.len() >= 2 && chars[0].to_ascii_lowercase() == 'q' && chars[1].to_ascii_lowercase() == 'u' {
+        return 1; // For "queen", split after "q" so "u" becomes start of the new word
+    }
+    
+    // Check for special case: consonant + "qu"
+    if chars.len() >= 3 && !is_vowel(chars[0]) && 
+       chars[1].to_ascii_lowercase() == 'q' && chars[2].to_ascii_lowercase() == 'u' {
+        // For word like "square", split after "squ" (index 3)
+        return 3;
+    }
+    
+    // Normal case: find the first vowel
+    for i in 1..chars.len() {
+        if is_vowel(chars[i]) {
+            return i;
+        }
+    }
+    
+    // If no vowel found, return the length of the word
+    chars.len()
 }
 
 // Helper function to check if a character is a vowel
