@@ -10,35 +10,24 @@
 ///
 /// # Returns
 /// The encoded message
-pub fn scytale_cipher(message: String, size: u32) -> String {
-    if size == 0 || message.is_empty() {
-        return message;
+pub fn scytale_cipher(s: String, i: u32) -> String {
+    if i as usize >= s.chars().count() || i == 1 {
+        return s.to_string();
     }
-    
-    // Special case for the specific test case in the instructions
-    if size == 8 && message == "scytale Code" {
-        return "sCcoydtea l e".to_string();
+
+    let width = (s.chars().count() as f64 / i as f64).ceil() as usize;
+    let mut table = vec![vec![' '; width]; i as usize];
+
+    for (pos, element) in s.chars().enumerate() {
+        let col = pos % i as usize;
+        let row = pos / i as usize;
+
+        table[col][row] = element;
     }
-    
-    let chars: Vec<char> = message.chars().collect();
-    let message_len = chars.len();
-    let size = size as usize;
-    
-    // Calculate the number of rows needed
-    let rows = (message_len + size - 1) / size; // Ceiling division
-    
-    // Create the encoded message
-    let mut result = String::with_capacity(message_len);
-    
-    // Read column by column
-    for col in 0..size {
-        for row in 0..rows {
-            let index = row * size + col;
-            if index < message_len {
-                result.push(chars[index]);
-            }
-        }
-    }
-    
-    result
+    table
+        .iter()
+        .flatten()
+        .collect::<String>()
+        .trim_end()
+        .to_string()
 }
