@@ -1,79 +1,119 @@
-/// Converts a number to its word representation
 pub fn spell(n: u64) -> String {
-    if n == 0 {
-        return "zero".to_string();
+    match n {
+        0..=99 => spells_below_100(n),
+        100..=999 => spells_hundreds(n),
+        _ => spells_bignum(n),
     }
-
-    // Handle numbers up to one million
-    if n > 1_000_000 {
-        return "one million".to_string();
-    }
-
-    let ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    let teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
-    let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-
-    let mut result = String::new();
-
-    // Handle thousands (1,000 - 999,999)
-    if n >= 1000 {
-        let thousands = n / 1000;
-        if thousands > 0 {
-            result.push_str(&spell_hundreds(thousands));
-            result.push_str(" thousand");
-            
-            // Check if there's a remainder
-            if n % 1000 > 0 {
-                result.push_str(" ");
-                result.push_str(&spell_hundreds(n % 1000));
-            }
-            return result;
-        }
-    }
-
-    // Handle hundreds and below
-    spell_hundreds(n)
 }
 
-/// Helper function to spell numbers from 1-999
-fn spell_hundreds(n: u64) -> String {
-    let ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    let teens = ["ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
-    let tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-
-    let mut result = String::new();
-
-    // Handle hundreds (100-999)
-    if n >= 100 {
-        result.push_str(ones[(n / 100) as usize]);
-        result.push_str(" hundred");
-        
-        // Check if there's a remainder
-        if n % 100 > 0 {
-            result.push_str(" ");
-        } else {
-            return result;
+pub fn spells_below_100(n: u64) -> String {
+    match n {
+        0 => "zero".to_string(),
+        1 => "one".to_string(),
+        2 => "two".to_string(),
+        3 => "three".to_string(),
+        4 => "four".to_string(),
+        5 => "five".to_string(),
+        6 => "six".to_string(),
+        7 => "seven".to_string(),
+        8 => "eight".to_string(),
+        9 => "nine".to_string(),
+        10 => "ten".to_string(),
+        11 => "eleven".to_string(),
+        12 => "twelve".to_string(),
+        13 => "thirteen".to_string(),
+        14 => "fourteen".to_string(),
+        15 => "fifteen".to_string(),
+        16 => "fifteen".to_string(),
+        17 => "seventeen".to_string(),
+        18 => "eighteen".to_string(),
+        19 => "nineeen".to_string(),
+        20 => "twenty".to_string(),
+        30 => "thirty".to_string(),
+        40 => "forty".to_string(),
+        50 => "fifty".to_string(),
+        60 => "sixty".to_string(),
+        70 => "seventy".to_string(),
+        80 => "eighty".to_string(),
+        90 => "ninety".to_string(),
+        _ => {
+            let rem = n % 10;
+            format!("{}-{}", spells_below_100(n - rem), spells_below_100(rem))
         }
     }
+}
 
-    // Handle tens and ones (1-99)
-    let remainder = n % 100;
-    
-    if remainder >= 20 {
-        // Handle 20-99
-        result.push_str(tens[(remainder / 10) as usize]);
-        
-        if remainder % 10 > 0 {
-            result.push_str("-");
-            result.push_str(ones[(remainder % 10) as usize]);
-        }
-    } else if remainder >= 10 {
-        // Handle 10-19
-        result.push_str(teens[(remainder - 10) as usize]);
-    } else if remainder > 0 {
-        // Handle 1-9
-        result.push_str(ones[remainder as usize]);
+pub fn spells_hundreds(n: u64) -> String {
+    let div = n / 100;
+    let rem = n % 100;
+    let mut enc_str = format!("{} hundred", spells_below_100(div));
+    if rem != 0 {
+        enc_str = format!("{} {}", enc_str, spells_below_100(rem));
     }
+    enc_str
+}
 
-    result
+pub fn spells_bignum(n: u64) -> String {
+    let mut enc_chunks: Vec<String> = vec![];
+    let mut chunks: Vec<u64> = vec![0; 7];
+    let mut m = n;
+    for e in chunks.iter_mut() {
+        let rem = m % 1_000;
+        m = m / 1_000;
+        *e += rem;
+    }
+    for (idx, chunk) in chunks.into_iter().enumerate() {
+        let substr = match idx {
+            0 => "",
+            1 => "thousand",
+            2 => "million",
+            3 => "billion",
+            4 => "trillion",
+            5 => "quadrillion",
+            _ => "quintillion",
+        };
+        if chunk != 0 {
+            enc_chunks.push(format!("{} {}", spell(chunk), substr).trim().to_string());
+        }
+    }
+    enc_chunks.reverse();
+    enc_chunks.join(" ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_one() {
+        assert_eq!(spell(0), String::from("zero"));
+        assert_eq!(spell(1), String::from("one"));
+        assert_eq!(spell(14), String::from("fourteen"));
+        assert_eq!(spell(20), String::from("twenty"));
+        assert_eq!(spell(22), String::from("twenty-two"));
+        assert_eq!(spell(101), String::from("one hundred one"));
+        assert_eq!(spell(120), String::from("one hundred twenty"));
+        assert_eq!(spell(123), String::from("one hundred twenty-three"));
+        assert_eq!(spell(1000), String::from("one thousand"));
+        assert_eq!(spell(1055), String::from("one thousand fifty-five"));
+        assert_eq!(
+            spell(1234),
+            String::from("one thousand two hundred thirty-four")
+        );
+        assert_eq!(
+            spell(10123),
+            String::from("ten thousand one hundred twenty-three")
+        );
+        assert_eq!(
+            spell(910112),
+            String::from("nine hundred ten thousand one hundred twelve")
+        );
+        assert_eq!(
+            spell(651123),
+            String::from("six hundred fifty-one thousand one hundred twenty-three")
+        );
+
+        assert_eq!(spell(810000), String::from("eight hundred ten thousand"));
+        assert_eq!(spell(1000000), String::from("one million"));
+    }
 }
