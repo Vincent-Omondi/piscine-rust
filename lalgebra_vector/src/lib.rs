@@ -1,29 +1,35 @@
-use lalgebra_scalar::Scalar;
+use std::fmt::Debug;
+use std::ops::{Add, Mul, AddAssign};
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Vector<T: Scalar<Item = T>>(pub Vec<T>);
+// Define a Scalar trait to restrict what types can be used in our Vector
+pub trait Scalar: Debug + Clone + Copy + Add<Output = Self> + Mul<Output = Self> + AddAssign + PartialEq {}
 
-use std::ops::Add;
+// Implement Scalar for common numeric types
+impl Scalar for i32 {}
+impl Scalar for i64 {}
+impl Scalar for f32 {}
+impl Scalar for f64 {}
 
-impl<T: Scalar<Item = T> + Add<Output = T>> Add<Self> for Vector<T> {
-    type Output = Option<Self>;
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Vector<T: Scalar>(pub Vec<T>);
+
+impl<T: Scalar> Add for Vector<T> {
+    type Output = Self;
+
     fn add(self, other: Self) -> Self::Output {
         if self.0.len() != other.0.len() {
-            return None;
+            return Vector(Vec::new());
         }
 
-        let result: Vector<T> = Vector(
-            self.0
-                .iter()
-                .zip(other.0.iter())
-                .map(|(x, y)| x.clone() + y.clone())
-                .collect(),
-        );
-        Some(result)
+        let mut result = Vec::with_capacity(self.0.len());
+        for i in 0..self.0.len() {
+            result.push(self.0[i] + other.0[i]);
+        }
+        Vector(result)
     }
 }
 
-impl<T: Scalar<Item = T> + std::iter::Sum<<T as std::ops::Mul>::Output>> Vector<T> {
+impl<T: Scalar> Vector<T> {
     pub fn new() -> Self {
         Vector(Vec::new())
     }
@@ -32,13 +38,33 @@ impl<T: Scalar<Item = T> + std::iter::Sum<<T as std::ops::Mul>::Output>> Vector<
         if self.0.len() != other.0.len() {
             return None;
         }
-        let result = self
-            .0
-            .iter()
-            .zip(other.0.iter())
-            .map(|(x, y)| x.clone() * y.clone())
-            .sum();
 
-        Some(result)
+        let mut result = None;
+        for i in 0..self.0.len() {
+            let product = self.0[i] * other.0[i];
+            if let Some(value) = result {
+                result = Some(value + product);
+            } else {
+                result = Some(product);
+            }
+        }
+        result
+    }
+}
+
+// Add reference implementation to avoid consuming vectors
+impl<'a, 'b, T: Scalar> Add<&'b Vector<T>> for &'a Vector<T> {
+    type Output = Vector<T>;
+
+    fn add(self, other: &'b Vector<T>) -> Self::Output {
+        if self.0.len() != other.0.len() {
+            return Vector(Vec::new());
+        }
+
+        let mut result = Vec::with_capacity(self.0.len());
+        for i in 0..self.0.len() {
+            result.push(self.0[i] + other.0[i]);
+        }
+        Vector(result)
     }
 }
