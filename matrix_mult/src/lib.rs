@@ -3,6 +3,12 @@ use std::ops::Mul;
 
 pub struct Matrix<T>(pub Vec<Vec<T>>);
 
+impl<T: PartialEq> PartialEq for Matrix<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
 impl<T: fmt::Debug> fmt::Debug for Matrix<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Matrix({:?})", self.0)
