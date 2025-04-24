@@ -3,13 +3,21 @@ use std::fmt;
 
 pub struct Matrix<T>(pub Vec<Vec<T>>);
 
-// Add Debug implementation for Matrix
+// Debug implementation for Matrix
 impl<T: fmt::Debug> fmt::Debug for Matrix<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Matrix({:?})", self.0)
     }
 }
 
+// PartialEq implementation for Matrix
+impl<T: PartialEq> PartialEq for Matrix<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+// Add implementation for Matrix
 impl<T: Clone + std::ops::Add<Output = T>> Add for Matrix<T> {
     type Output = Option<Matrix<T>>;
     
@@ -42,6 +50,7 @@ impl<T: Clone + std::ops::Add<Output = T>> Add for Matrix<T> {
     }
 }
 
+// Sub implementation for Matrix
 impl<T: Clone + std::ops::Sub<Output = T>> Sub for Matrix<T> {
     type Output = Option<Matrix<T>>;
     
